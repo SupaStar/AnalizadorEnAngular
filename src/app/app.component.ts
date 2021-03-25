@@ -11,6 +11,7 @@ export class AppComponent {
   errores = [];
   numeros = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9];
   variables = new RegExp('[a-zA-Z0-9]*');
+  signos = new RegExp('<|>|=');
   simbolos = ['+', '-', '*', '/', '(', ')', '='];
   operadores = ['+', '-', '*', '/', '='];
   palabrasReservadas = new RegExp('for|while|if|switch');
@@ -20,7 +21,7 @@ export class AppComponent {
   analizar = () => {
     this.salida = [];
     this.errores = [];
-    this.cadena = this.cadena.replace(/ /g, "");
+    this.cadena = this.cadena.replace(/\s+/g, '');
     for (var i = 0; i < this.cadena.length; i++) {
       let response = this.validarLexema(i);
       if (response.estado != true) {
@@ -46,7 +47,7 @@ export class AppComponent {
   numeroCompleto = (indice) => {
     // @ts-ignore
     // tslint:disable-next-line:triple-equals
-    if (this.numeros.some(value => value == this.cadena[indice])) {
+    if (this.numeros.some(value => value == this.cadena[indice]) && this.cadena[indice] != '{') {
       const response = this.numeroCompleto(indice + 1);
       if (!response.estado) {
         if (response.detalle < indice) {
@@ -59,7 +60,7 @@ export class AppComponent {
     }
   }
   palabraCompleta = (indice) => {
-    if (this.variables.test(this.cadena[indice]) && indice < this.cadena.length && this.cadena[indice] !== '=') {
+    if (this.variables.test(this.cadena[indice]) && indice < this.cadena.length && !this.signos.test(this.cadena[indice]) && this.cadena[indice] != '(') {
       const response = this.palabraCompleta(indice + 1);
       if (!response.estado) {
         if (response.detalle < indice) {
@@ -80,15 +81,18 @@ export class AppComponent {
       if (this.letras.test(this.cadena[indice])) {
         let response = this.palabraCompleta(indice + 1);
         let palabra = '';
+        let expresion;
         for (let e = indice; e < response.detalle; e++) {
           palabra += this.cadena[e];
         }
-        console.log(palabra);
         if (this.palabrasReservadas.test(palabra)) {
-          return {estado: true, detalle: palabra + " palabra reservada", fin: response.detalle};
-        } else if (this.cadena[response.detalle + 1] == '=') {
-          return {estado: true, detalle: palabra + " variable", fin: response.detalle};
-        } else {
+          if (palabra == 'for') {
+            expresion = this.forr(response.detalle);
+          } else if (palabra == 'if') {
+            expresion = this.iff(response.detalle);
+          }
+          return expresion;
+        } else if (this.cadena[response.detalle] == '=') {
           return {estado: true, detalle: palabra + " variable", fin: response.detalle};
         }
         return {estado: false, detalle: palabra + " dato invalido", fin: response.detalle};
@@ -121,7 +125,7 @@ export class AppComponent {
           if (this.numeros.some(value => value == this.cadena[indice + 1])) {
             return {estado: true, detalle: this.cadena[indice] + ' es operador'};
           } else {
-            return {estado: false, detalle: "Se esperaba un numero y se recibio: " + this.cadena[indice + 1]};
+            return this.textico(indice);
           }
         }
       } else if (this.cadena[indice + 1] == '(') {
@@ -130,6 +134,67 @@ export class AppComponent {
       } else {
         return {estado: true};
       }
+    }
+  }
+  forr = (indice) => {
+    let forcompleto = "";
+    for (var i = indice + 1; i < this.cadena.length; i++) {
+      if (this.cadena[i] == ')') {
+        break;
+      }
+      forcompleto += this.cadena[i];
+    }
+    let expresionFor = new RegExp("((^[A-z]*)([0-9]*))\\b={1}\\b((([A-z])([0-9]*))|(([A-z])|([0-9]*)))");
+    let validacion = true;
+    let forDividido = forcompleto.split(';');
+    if (forDividido.length < 3)
+      validacion = false;
+    if (validacion)
+      validacion = expresionFor.test(forDividido[0]);
+    expresionFor = new RegExp("((^[A-z]*)([0-9]*))\\b(>=|<=|>|<){1}\\b((([A-z])([0-9]*))|(([A-z])|([0-9]*)))");
+    if (validacion)
+      validacion = expresionFor.test(forDividido[1]);
+    expresionFor = new RegExp("\\b((^[A-z]*)([0-9]*)){1}\\b((\\+\\+|\\--)$)");
+    if (validacion)
+      validacion = expresionFor.test(forDividido[2]);
+    return {
+      estado: validacion,
+      detalle: 'expresion ' + forcompleto + ' es ' + (validacion ? 'valida' : 'invalida'),
+      fin: i + 1
+    }
+  }
+
+  iff = (indice) => {
+    let iffcompleto = "";
+    for (var i = indice + 1; i < this.cadena.length; i++) {
+      if (this.cadena[i] == ')') {
+        break;
+      }
+      iffcompleto += this.cadena[i];
+    }
+    let expresionIf = new RegExp("((^[A-z]*)([0-9]*))(\\b>=|<=|>|<|<>{1}\\b)((([A-z]*)([0-9]*))$)");
+    let validacion = expresionIf.test(iffcompleto);
+    return {
+      estado: validacion,
+      detalle: 'expresion ' + iffcompleto + ' es ' + (validacion ? 'valida' : 'invalida'),
+      fin: i + 1
+    }
+  }
+  textico = (indice) => {
+    if (this.cadena[indice+1] == '"' || this.cadena[indice+1] == "'") {
+      let texto = '';
+      for (var i = indice + 2; i < this.cadena.length; i++) {
+        if (this.cadena[i] == '"' || this.cadena[i] == "'") {
+          break;
+        }
+        texto += this.cadena[i];
+      }
+      return {
+        estado: true, detalle: 'valor de la variable es: ' + texto, fin: i + 1
+      }
+    }
+    return {
+      estado: false, detalle: 'error ' , fin: indice
     }
   }
 }

@@ -6,7 +6,7 @@ import {Component, OnInit} from '@angular/core';
   styleUrls: ['./app.component.css']
 })
 export class AppComponent {
-  title = 'Compilador';
+  title = 'Compilador hecho por obed uwu';
   cadena = ``;
   errores = [];
   numeros = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9];
@@ -14,12 +14,13 @@ export class AppComponent {
   signos = new RegExp('<|>|=');
   simbolos = ['+', '-', '*', '/', '(', ')', '='];
   operadores = ['+', '-', '*', '/', '='];
-  palabrasReservadas = new RegExp('for|while|if|switch');
+  palabrasReservadas = new RegExp('for|while|if|switch|function');
   letras = new RegExp('[A-Za-z]');
   pila = [];
   pilaLlaves = [];
   salida = [];
   analizar = () => {
+    this.pilaLlaves=[];
     this.salida = [];
     this.errores = [];
     this.cadena = this.cadena.replace(/\s+/g, '');
@@ -56,7 +57,7 @@ export class AppComponent {
   numeroCompleto = (indice) => {
     // @ts-ignore
     // tslint:disable-next-line:triple-equals
-    if (this.numeros.some(value => value == this.cadena[indice]) && this.cadena[indice] != '{') {
+    if (this.numeros.some(value => value == this.cadena[indice]) ) {
       const response = this.numeroCompleto(indice + 1);
       if (!response.estado) {
         if (response.detalle < indice) {
@@ -86,24 +87,33 @@ export class AppComponent {
     if (this.cadena[indice] == '(') {
       this.pila.push('(');
       return {estado: true, detalle: '( inicio de parentesis'};
-    }else if(this.cadena[indice] == '{') {
+    } else if (this.cadena[indice] == '{') {
       this.pilaLlaves.push('{');
       return {estado: true, detalle: '{ inicio de llaves'};
-    }else {
+    }else if(this.cadena[indice] == '}'){
+      if (this.pilaLlaves.length > 0) {
+        this.pilaLlaves.pop();
+        return {estado: true, detalle: '} fin de llaves'};
+      } else {
+        return {estado: false, detalle: "No se contaba con otro { en la pila"};
+      }
+    } else {
       if (this.letras.test(this.cadena[indice])) {
         let response = this.palabraCompleta(indice + 1);
         let palabra = '';
-        let expresion;
         for (let e = indice; e < response.detalle; e++) {
           palabra += this.cadena[e];
         }
+        let expresion ;
         if (this.palabrasReservadas.test(palabra)) {
           if (palabra == 'for') {
             expresion = this.forr(response.detalle);
           } else if (palabra == 'if') {
             expresion = this.iff(response.detalle);
-          }else if(palabra=='switch'){
+          } else if (palabra == 'switch') {
             expresion = this.switcha(response.detalle);
+          }else{
+            expresion={estado: true, detalle: palabra + " palabra reservada", fin: response.detalle};
           }
           return expresion;
         } else if (this.cadena[response.detalle] == '=') {
@@ -132,7 +142,7 @@ export class AppComponent {
         } else {
           return {estado: false, detalle: "No se contaba con otro ( en la pila"};
         }
-      }else if(this.cadena[indice] == '}'){
+      } else if (this.cadena[indice] == '}') {
         if (this.pilaLlaves.length > 0) {
           this.pilaLlaves.pop();
           return {estado: true, detalle: '} fin de llaves'};
@@ -201,7 +211,7 @@ export class AppComponent {
       fin: i + 1
     }
   }
-  switcha=(indice)=>{
+  switcha = (indice) => {
     let switchcompleto = "";
     for (var i = indice + 1; i < this.cadena.length; i++) {
       if (this.cadena[i] == ')') {
@@ -218,7 +228,7 @@ export class AppComponent {
     }
   }
   textico = (indice) => {
-    if (this.cadena[indice+1] == '"' || this.cadena[indice+1] == "'") {
+    if (this.cadena[indice + 1] == '"' || this.cadena[indice + 1] == "'") {
       let texto = '';
       for (var i = indice + 2; i < this.cadena.length; i++) {
         if (this.cadena[i] == '"' || this.cadena[i] == "'") {
@@ -231,7 +241,7 @@ export class AppComponent {
       }
     }
     return {
-      estado: false, detalle: 'error ' , fin: indice
+      estado: false, detalle: 'error ', fin: indice
     }
   }
 }

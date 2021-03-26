@@ -1,4 +1,6 @@
 <div class="rounded-t-xl overflow-hidden p-6">
+  <h1>Proyecto obed uwu</h1>
+
   <div
     class="group px-4 py-5 max-w-full mx-auto w-full border border-indigo-500 text-center border-opacity-25 rounded-lg select-none overflow-hidden space-y-1">
     <label class="font-semibold text-lg px-2 text-black" for="cadena">Cadena
@@ -14,5 +16,5 @@
 <div class="mt-8 space-y-80 px-96 cursor-not-allowed rounded-t-xl bg-red-200 overflow-auto text-center p-12" *ngIf="errores.length>0">
   <span class="text-gray-800" *ngFor="let error of errores">{{error}}</span>
 </div>
-
+<h6>{{title}}</h6>
 <router-outlet></router-outlet>

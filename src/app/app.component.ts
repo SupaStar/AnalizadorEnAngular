@@ -17,7 +17,6 @@ export class AppComponent {
   palabrasReservadas = new RegExp('for|while|if|switch');
   letras = new RegExp('[A-Za-z]');
   pila = [];
-  pilaLlaves = [];
   salida = [];
   analizar = () => {
     this.salida = [];
@@ -42,14 +41,6 @@ export class AppComponent {
     }
     if (this.pila.length > 0) {
       this.errores.push("No cerraste tu (");
-    }
-    if (this.cadena.length == 1) {
-      if (this.cadena[0] == '{') {
-        this.errores.push("No cerraste tu {");
-      }
-    }
-    if (this.pilaLlaves.length > 0) {
-      this.errores.push("No cerraste tu {");
     }
   }
 
@@ -86,10 +77,7 @@ export class AppComponent {
     if (this.cadena[indice] == '(') {
       this.pila.push('(');
       return {estado: true, detalle: '( inicio de parentesis'};
-    }else if(this.cadena[indice] == '{') {
-      this.pilaLlaves.push('{');
-      return {estado: true, detalle: '{ inicio de llaves'};
-    }else {
+    } else {
       if (this.letras.test(this.cadena[indice])) {
         let response = this.palabraCompleta(indice + 1);
         let palabra = '';
@@ -102,8 +90,6 @@ export class AppComponent {
             expresion = this.forr(response.detalle);
           } else if (palabra == 'if') {
             expresion = this.iff(response.detalle);
-          }else if(palabra=='switch'){
-            expresion = this.switcha(response.detalle);
           }
           return expresion;
         } else if (this.cadena[response.detalle] == '=') {
@@ -131,13 +117,6 @@ export class AppComponent {
           return {estado: true, detalle: ') fin de parentesis'};
         } else {
           return {estado: false, detalle: "No se contaba con otro ( en la pila"};
-        }
-      }else if(this.cadena[indice] == '}'){
-        if (this.pilaLlaves.length > 0) {
-          this.pilaLlaves.pop();
-          return {estado: true, detalle: '} fin de llaves'};
-        } else {
-          return {estado: false, detalle: "No se contaba con otro { en la pila"};
         }
       } else if (this.operadores.some(value => value == this.cadena[indice])) {
         if (this.cadena[indice + 1] == '(') {
@@ -180,7 +159,7 @@ export class AppComponent {
       validacion = expresionFor.test(forDividido[2]);
     return {
       estado: validacion,
-      detalle: 'expresion ' + forcompleto + ' del for es ' + (validacion ? 'valida' : 'invalida'),
+      detalle: 'expresion ' + forcompleto + ' es ' + (validacion ? 'valida' : 'invalida'),
       fin: i + 1
     }
   }
@@ -197,23 +176,7 @@ export class AppComponent {
     let validacion = expresionIf.test(iffcompleto);
     return {
       estado: validacion,
-      detalle: 'expresion ' + iffcompleto + ' del if es ' + (validacion ? 'valida' : 'invalida'),
-      fin: i + 1
-    }
-  }
-  switcha=(indice)=>{
-    let switchcompleto = "";
-    for (var i = indice + 1; i < this.cadena.length; i++) {
-      if (this.cadena[i] == ')') {
-        break;
-      }
-      switchcompleto += this.cadena[i];
-    }
-    let expresionIf = new RegExp("((^[A-z]*)([0-9]*))(\\b>=|<=|>|<|<>{1}\\b)((([A-z]*)([0-9]*))$)");
-    let validacion = expresionIf.test(switchcompleto);
-    return {
-      estado: validacion,
-      detalle: 'expresion ' + switchcompleto + ' del switch es ' + (validacion ? 'valida' : 'invalida'),
+      detalle: 'expresion ' + iffcompleto + ' es ' + (validacion ? 'valida' : 'invalida'),
       fin: i + 1
     }
   }

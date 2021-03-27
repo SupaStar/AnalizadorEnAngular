@@ -11,7 +11,9 @@
   </div>
 </div>
 <div class="mx-12">
-  <div aria-label="salida" class="w-full bg-white opacity-70 p-28 overscroll-auto"><span *ngFor="let mensaje of salida">{{mensaje}}<br></span></div>
+  <table aria-label="salida" class=" bg-white opacity-70 p-28 table-auto border border-red-500">
+    <tr class="bg-gray-200 border border-red-500" *ngFor="let mensaje of salida"><td>{{mensaje}}</td></tr>
+  </table>
 </div>
 <div class="mt-8 space-y-80 px-96 cursor-not-allowed rounded-t-xl bg-red-200 overflow-auto text-center p-12" *ngIf="errores.length>0">
   <span class="text-gray-800" *ngFor="let error of errores">{{error}}</span>

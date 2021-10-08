@@ -14,7 +14,7 @@ export class AppComponent {
   signos = new RegExp('<|>|=');
   simbolos = ['+', '-', '*', '/', '(', ')', '='];
   operadores = ['+', '-', '*', '/', '='];
-  palabrasReservadas = new RegExp('for|while|if|switch|function');
+  palabrasReservadas = new RegExp('for|while|if|switch|function|export|class');
   letras = new RegExp('[A-Za-z]');
   pila = [];
   pilaLlaves = [];
